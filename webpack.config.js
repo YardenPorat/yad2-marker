@@ -6,8 +6,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 module.exports = {
   mode: 'production',
   entry: {
-    main: './project/devContentScript.js', //main js file
-    'popup-css': './project/popup.css',
+    contentScript: './project/devContentScript.js', //main js file
+    popupCss: './project/popup.css',
   },
   output: {
     path: path.resolve(__dirname, 'dist'), //output folder
