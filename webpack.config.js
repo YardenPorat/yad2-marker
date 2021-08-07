@@ -1,23 +1,19 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: 'production',
     entry: {
-        contentScript: './project/devContentScript.js', //main js file
-        popupCss: './project/popup.css',
+        main: './src/main.ts',
+        'popup-css': './src/popup.css',
     },
     output: {
-        path: path.resolve(__dirname, 'dist'), //output folder
-        filename: '[name].js', //output file
+        filename: '[name].js',
     },
     module: {
         rules: [
-            {
-                test: /\.(js|jsx)$/,
-                use: 'babel-loader',
-            },
             {
                 test: /\.css$/,
                 use: [
@@ -28,6 +24,11 @@ module.exports = {
                     'css-loader',
                 ],
             },
+            {
+                test: /\.ts?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
         ],
     },
     optimization: {
@@ -35,8 +36,14 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './project/popup.html',
+            template: './src/popup.html',
             filename: 'popup.html',
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: 'src/static', to: 'static' },
+                { from: 'src/manifest.json' },
+            ],
         }),
     ],
 };
