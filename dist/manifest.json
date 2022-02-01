@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Yad2 Marker",
   "description": "Helps you to filter and mark ads you already checked",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "icons": {
     "16": "./static/icon16.png",
     "32": "./static/icon32.png",
