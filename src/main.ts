@@ -6,6 +6,11 @@ const HTML_ICON = `<div style="position: absolute; right: -25px; cursor: pointer
 
 type adStorage = Record<string, number>;
 
+const buttonListeners: Element[] = [];
+const DEBUG = false;
+// eslint-disable-next-line no-console
+const log = (message: string) => DEBUG && console.log(message);
+
 export const getFeedItem = (el: HTMLElement) => {
     while (el.classList.value !== 'feeditem table') {
         el = el.parentElement!;
@@ -15,13 +20,13 @@ export const getFeedItem = (el: HTMLElement) => {
 
 const readFromStorage = async (): Promise<adStorage> => {
     const storage =
-        ((await new Promise(function (resolve) {
+        (await new Promise(function (resolve) {
             chrome.storage.sync.get(STORAGE_KEY, (response) => {
                 resolve(response[STORAGE_KEY]);
             });
-        })) as adStorage) ?? {};
+        })) ?? {};
 
-    return storage;
+    return storage as adStorage;
 };
 
 const insertButton = () => {
@@ -31,31 +36,35 @@ const insertButton = () => {
     }
 
     const buttons = document.getElementsByClassName('close-ad');
+    buttonListeners.push(...buttons);
     for (const button of buttons) {
         button.addEventListener('click', onButtonClick);
     }
 };
 
-const onButtonClick = async (event: Event) => {
+const onButtonClick = (event: Event) => {
     const feedItemElement = getFeedItem(event.target as HTMLElement);
     const id = (feedItemElement.firstElementChild!.nextSibling as HTMLElement).getAttribute('item-id')!;
 
-    const storage = await readFromStorage();
-
-    if (id in storage) {
-        unhideItem(feedItemElement);
-        delete storage[id];
-        console.log(`'${id}' Removed`);
-        await saveToStorage(storage);
-    } else {
-        hideItem(feedItemElement);
-        storage[id] = 1;
-        console.log(`'${id}' Added`);
-        await saveToStorage(storage);
-    }
+    void (async function () {
+        const storage = await readFromStorage();
+        if (id in storage) {
+            unhideItem(feedItemElement);
+            delete storage[id];
+            // eslint-disable-next-line no-console
+            console.log(`'${id}' Removed`);
+            await saveToStorage(storage);
+        } else {
+            hideItem(feedItemElement);
+            storage[id] = 1;
+            // eslint-disable-next-line no-console
+            console.log(`'${id}' Added`);
+            await saveToStorage(storage);
+        }
+    })();
 };
 
-const hideItem = async (feedItemElement: HTMLElement) => {
+const hideItem = (feedItemElement: HTMLElement) => {
     (feedItemElement.firstElementChild!.nextSibling!.firstChild as HTMLElement).style.backgroundColor = 'gray';
 };
 
@@ -63,42 +72,52 @@ const unhideItem = (feedItemElement: HTMLElement) => {
     (feedItemElement.firstElementChild!.nextSibling!.firstChild! as HTMLElement).style.backgroundColor = '';
 };
 
-const saveToStorage = (storage: adStorage) => {
-    chrome.storage.sync.set({
+const saveToStorage = async (storage: adStorage) => {
+    await chrome.storage.sync.set({
         [STORAGE_KEY]: storage,
     });
 };
 
-// Hide on first load id's from chrome storage
+/** Hide on first load id's from chrome storage */
 const searchHideOnLoad = async () => {
     const storage = await readFromStorage();
     const ids = Object.keys(storage);
+    // eslint-disable-next-line no-console
     console.log(`${ids.length} Items in memory`);
     for (const id of ids) {
         const postElToHide = document.querySelector(`[item-id="${id}"]`);
         if (postElToHide) {
-            (postElToHide!.firstElementChild as HTMLElement).style.backgroundColor = 'gray';
+            log(`Found '${id}', trying to hide`);
+            (postElToHide.firstElementChild as HTMLElement).style.backgroundColor = 'gray';
         }
     }
 };
 
 async function init() {
-    console.log(`yad2 marker initialized`);
+    // eslint-disable-next-line no-console
+    console.log(`Yad2 marker initialized`);
     hideAllAds();
     insertButton();
     await searchHideOnLoad();
 }
 
 window.onload = async () => {
-    console.log('firstEntry');
+    log('onload event');
     await init();
 };
 
 chrome.runtime.onMessage.addListener(function (request) {
-    if (request.message === 'enteredRealEstate') {
-        console.log('enteredRealEstate');
-        setTimeout(async () => {
-            await init();
-        }, 3000);
+    if (request.message === 'urlChanged') {
+        log('urlChanged event');
+        cleanListeners();
+        setTimeout(() => void init(), 2_000);
     }
 });
+
+function cleanListeners() {
+    for (const button of buttonListeners) {
+        button.removeEventListener('click', onButtonClick);
+        button.remove();
+    }
+    buttonListeners.splice(0);
+}

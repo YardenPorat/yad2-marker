@@ -1,7 +1,9 @@
+let url = '';
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
-    if (changeInfo.url && changeInfo.url.includes('yad2.co.il/realestate')) {
+    if (changeInfo.url && changeInfo.url !== url) {
+        url = changeInfo.url;
         chrome.tabs.sendMessage(tabId, {
-            message: 'enteredRealEstate',
+            message: 'urlChanged',
             url: changeInfo.url,
         });
     }
