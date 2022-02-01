@@ -7,6 +7,7 @@ module.exports = {
     mode: 'production',
     entry: {
         main: './src/main.ts',
+        background: './src/background.ts',
         'popup-css': './src/popup.css',
     },
     output: {
@@ -21,9 +22,7 @@ module.exports = {
                 test: /\.css$/,
                 use: [
                     // fallback to style-loader in development
-                    process.env.NODE_ENV !== 'production'
-                        ? 'style-loader'
-                        : MiniCssExtractPlugin.loader,
+                    process.env.NODE_ENV !== 'production' ? 'style-loader' : MiniCssExtractPlugin.loader,
                     'css-loader',
                 ],
             },
@@ -43,10 +42,7 @@ module.exports = {
             filename: 'popup.html',
         }),
         new CopyWebpackPlugin({
-            patterns: [
-                { from: 'src/static', to: 'static' },
-                { from: 'src/manifest.json' },
-            ],
+            patterns: [{ from: 'src/static', to: 'static' }, { from: 'src/manifest.json' }],
         }),
     ],
 };

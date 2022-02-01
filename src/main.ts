@@ -38,9 +38,7 @@ const insertButton = () => {
 
 const onButtonClick = async (event: Event) => {
     const feedItemElement = getFeedItem(event.target as HTMLElement);
-    const id = (
-        feedItemElement.firstElementChild!.nextSibling as HTMLElement
-    ).getAttribute('item-id')!;
+    const id = (feedItemElement.firstElementChild!.nextSibling as HTMLElement).getAttribute('item-id')!;
 
     const storage = await readFromStorage();
 
@@ -58,17 +56,11 @@ const onButtonClick = async (event: Event) => {
 };
 
 const hideItem = async (feedItemElement: HTMLElement) => {
-    (
-        feedItemElement.firstElementChild!.nextSibling!
-            .firstChild as HTMLElement
-    ).style.backgroundColor = 'gray';
+    (feedItemElement.firstElementChild!.nextSibling!.firstChild as HTMLElement).style.backgroundColor = 'gray';
 };
 
 const unhideItem = (feedItemElement: HTMLElement) => {
-    (
-        feedItemElement.firstElementChild!.nextSibling!
-            .firstChild! as HTMLElement
-    ).style.backgroundColor = '';
+    (feedItemElement.firstElementChild!.nextSibling!.firstChild! as HTMLElement).style.backgroundColor = '';
 };
 
 const saveToStorage = (storage: adStorage) => {
@@ -78,23 +70,35 @@ const saveToStorage = (storage: adStorage) => {
 };
 
 // Hide on first load id's from chrome storage
-const searchHideOnLoad = (storage: adStorage) => {
+const searchHideOnLoad = async () => {
+    const storage = await readFromStorage();
     const ids = Object.keys(storage);
     console.log(`${ids.length} Items in memory`);
     for (const id of ids) {
         const postElToHide = document.querySelector(`[item-id="${id}"]`);
         if (postElToHide) {
-            (
-                postElToHide!.firstElementChild as HTMLElement
-            ).style.backgroundColor = 'gray';
+            (postElToHide!.firstElementChild as HTMLElement).style.backgroundColor = 'gray';
         }
     }
 };
 
-window.onload = async () => {
-    const storage = await readFromStorage();
+async function init() {
     console.log(`yad2 marker initialized`);
     hideAllAds();
     insertButton();
-    searchHideOnLoad(storage);
+    await searchHideOnLoad();
+}
+
+window.onload = async () => {
+    console.log('firstEntry');
+    await init();
 };
+
+chrome.runtime.onMessage.addListener(function (request) {
+    if (request.message === 'enteredRealEstate') {
+        console.log('enteredRealEstate');
+        setTimeout(async () => {
+            await init();
+        }, 3000);
+    }
+});

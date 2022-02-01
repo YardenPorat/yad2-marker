@@ -1,25 +1,26 @@
 {
-    "manifest_version": 2,
-
-    "name": "Yad2 Marker",
-    "description": "Helps you to filter and mark ads you already checked",
-    "version": "1.0.7",
-    "icons": {
-        "16": "./static/icon16.png",
-        "32": "./static/icon32.png",
-        "48": "./static/icon48.png",
-        "128": "./static/icon128.png"
-    },
-    "browser_action": {
-        "default_icon": "./static/icon.png",
-        "default_popup": "popup.html"
-    },
-    "content_scripts": [
-        {
-            "matches": ["https://*.yad2.co.il/*"],
-            "js": ["main.js"]
-        }
-    ],
-    "permissions": ["https://*.yad2.co.il/*", "storage"],
-    "content_security_policy": "script-src 'self' https://ssl.google-analytics.com https://www.google-analytics.com https://www.googletagmanager.com https://google-analytics.com; object-src 'self'"
+  "manifest_version": 3,
+  "name": "Yad2 Marker",
+  "description": "Helps you to filter and mark ads you already checked",
+  "version": "1.0.7",
+  "icons": {
+    "16": "./static/icon16.png",
+    "32": "./static/icon32.png",
+    "48": "./static/icon48.png",
+    "128": "./static/icon128.png"
+  },
+  "action": {
+    "default_icon": "./static/icon.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.yad2.co.il/*"],
+      "js": ["main.js"]
+    }
+  ],
+  "permissions": ["https://*.yad2.co.il/*", "storage", "tabs"]
 }
