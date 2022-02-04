@@ -11,11 +11,10 @@ const ADS_SELECTORS = [
     '.feed-list-platinum',
     '.dominant_realtor',
     '.yad1_list',
+    '.dfp_v2',
 ];
 export const hideAllAds = () => {
-    const adsArray = document.querySelectorAll<HTMLElement>(
-        ADS_SELECTORS.join(', ')
-    );
+    const adsArray = document.querySelectorAll<HTMLElement>(ADS_SELECTORS.join(', '));
 
     for (const ad of adsArray) {
         ad.style.display = 'none';

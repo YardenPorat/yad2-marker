@@ -1,10 +1,9 @@
 {
   "name": "yad2-marker",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Mark ads on yad2",
   "main": "dist/main.js",
   "devDependencies": {
-    "@babel/core": "^7.16.12",
     "@types/chrome": "^0.0.177",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",

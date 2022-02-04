@@ -1,15 +1,29 @@
-import { hideAllAds } from './components/hide-ads';
+import { debounce } from './helpers/debounce';
+import { hideAllAds } from './helpers/hide-ads';
 
 const STORAGE_KEY = 'yad2-marker';
-const HTML_ICON = `<div style="position: absolute; right: -25px; cursor: pointer;" class="close-ad"><svg fill="#ff0000" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" enable-background="new 0 0 24 24" xml:space="preserve"><g id="Duotone"></g><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></g>
-</svg></div>`;
+const HTML_ICON = `
+<div style="position: absolute; right: -25px; cursor: pointer;" class="close-ad">
+    <svg 
+        fill="#ff0000"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="24px"
+        height="24px"
+        viewBox="0 0 24 24"
+        enable-background="new 0 0 24 24">
+    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+    </svg>
+</div>`.trim();
 
 type adStorage = Record<string, number>;
 
 const buttonListeners: Element[] = [];
-const DEBUG = false;
+const DEBUG = true;
 // eslint-disable-next-line no-console
 const log = (message: string) => DEBUG && console.log(message);
+const isMapMode = (url: string) => url.includes('/map?');
 
 export const getFeedItem = (el: HTMLElement) => {
     while (el.classList.value !== 'feeditem table') {
@@ -65,11 +79,15 @@ const onButtonClick = (event: Event) => {
 };
 
 const hideItem = (feedItemElement: HTMLElement) => {
-    (feedItemElement.firstElementChild!.nextSibling!.firstChild as HTMLElement).style.backgroundColor = 'gray';
+    isMapMode(location.href)
+        ? ((feedItemElement.firstChild!.nextSibling as HTMLElement).style.backgroundColor = 'gray')
+        : ((feedItemElement.firstChild!.nextSibling!.firstChild as HTMLElement).style.backgroundColor = 'gray');
 };
 
 const unhideItem = (feedItemElement: HTMLElement) => {
-    (feedItemElement.firstElementChild!.nextSibling!.firstChild! as HTMLElement).style.backgroundColor = '';
+    isMapMode(location.href)
+        ? ((feedItemElement.firstChild!.nextSibling as HTMLElement).style.backgroundColor = 'unset')
+        : ((feedItemElement.firstElementChild!.nextSibling!.firstChild! as HTMLElement).style.backgroundColor = '');
 };
 
 const saveToStorage = async (storage: adStorage) => {
@@ -82,38 +100,58 @@ const saveToStorage = async (storage: adStorage) => {
 const searchHideOnLoad = async () => {
     const storage = await readFromStorage();
     const ids = Object.keys(storage);
-    // eslint-disable-next-line no-console
-    console.log(`${ids.length} Items in memory`);
+
+    log(`${ids.length} Items in memory`);
+
     for (const id of ids) {
-        const postElToHide = document.querySelector(`[item-id="${id}"]`);
+        const postElToHide = document.querySelector<HTMLElement>(`[item-id="${id}"]`);
         if (postElToHide) {
             log(`Found '${id}', trying to hide`);
-            (postElToHide.firstElementChild as HTMLElement).style.backgroundColor = 'gray';
+
+            if (isMapMode(location.href)) {
+                log('on map mode');
+                postElToHide.style.backgroundColor = 'gray';
+            } else {
+                (postElToHide.firstElementChild as HTMLElement).style.backgroundColor = 'gray';
+            }
         }
     }
 };
 
-async function init() {
-    // eslint-disable-next-line no-console
-    console.log(`Yad2 marker initialized`);
-    hideAllAds();
-    insertButton();
-    await searchHideOnLoad();
+function init(wait = 1_000) {
+    setTimeout(() => {
+        log(`Yad2 marker init()`);
+        hideAllAds();
+        insertButton();
+        void searchHideOnLoad();
+    }, wait);
 }
 
-window.onload = async () => {
+let mapFeedObserver: MutationObserver;
+window.onload = () => {
     log('onload event');
-    await init();
+    shortDebouncedInit();
+    if (isMapMode(location.href)) {
+        observeMapFeed();
+    } else if (mapFeedObserver) {
+        mapFeedObserver.disconnect();
+    }
 };
 
 chrome.runtime.onMessage.addListener(function (request) {
     if (request.message === 'urlChanged') {
-        log('urlChanged event');
+        log('urlChanged event with url: ' + request.url);
         cleanListeners();
-        setTimeout(() => void init(), 2_000);
+        shortDebouncedInit();
+        if (isMapMode(location.href)) {
+            observeMapFeed();
+        } else if (mapFeedObserver) {
+            mapFeedObserver.disconnect();
+        }
     }
 });
 
+/** Should be activates on url change since there are no listener on load */
 function cleanListeners() {
     for (const button of buttonListeners) {
         button.removeEventListener('click', onButtonClick);
@@ -121,3 +159,13 @@ function cleanListeners() {
     }
     buttonListeners.splice(0);
 }
+
+const shortDebouncedInit = debounce(init, 1_000);
+const observeMapFeed = () => {
+    const target = document.querySelector('.feed') as HTMLTitleElement;
+    mapFeedObserver = new MutationObserver(() => {
+        log('MutationObserver event');
+        shortDebouncedInit();
+    });
+    mapFeedObserver.observe(target, { childList: true });
+};
