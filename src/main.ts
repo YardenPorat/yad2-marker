@@ -20,7 +20,7 @@ const HTML_ICON = `
 type adStorage = Record<string, number>;
 
 const buttonListeners: Element[] = [];
-const DEBUG = true;
+const DEBUG = false;
 // eslint-disable-next-line no-console
 const log = (message: string) => DEBUG && console.log(message);
 const isMapMode = (url: string) => url.includes('/map?');
