@@ -1,6 +1,6 @@
 {
   "name": "yad2-marker",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Mark ads on yad2",
   "main": "dist/main.js",
   "devDependencies": {
