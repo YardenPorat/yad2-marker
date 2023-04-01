@@ -25,11 +25,12 @@ const DEBUG = false;
 const log = (message: string) => DEBUG && console.log(message);
 const isMapMode = (url: string) => url.includes('/map?');
 
-export const getFeedItem = (el: HTMLElement) => {
-    while (el.classList.value !== 'feeditem table') {
-        el = el.parentElement!;
+export const getFeedItem = (el: HTMLElement): HTMLElement => {
+    const element = el.closest('.feeditem.table');
+    if (!element || !(element instanceof HTMLElement)) {
+        throw new Error('Could not find feed item');
     }
-    return el;
+    return element;
 };
 
 const readFromStorage = async (): Promise<adStorage> => {

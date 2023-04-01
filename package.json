@@ -1,8 +1,15 @@
 {
   "name": "yad2-marker",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Mark ads on yad2",
   "main": "dist/main.js",
+  "scripts": {
+    "prebuild": "npm run clean && node scripts/update-manifest-version.js",
+    "build": "webpack",
+    "clean": "rimraf \"./dist\" ",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
   "devDependencies": {
     "@types/chrome": "^0.0.177",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
@@ -22,13 +29,6 @@
     "ts-loader": "^9.2.6",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2"
-  },
-  "scripts": {
-    "prebuild": "npm run clean && node scripts/update-manifest-version.js",
-    "build": "webpack",
-    "clean": "rimraf \"./dist\" ",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
   },
   "author": "Yarden Porat",
   "license": "MIT"

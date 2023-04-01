@@ -7,7 +7,7 @@ module.exports = {
     entry: {
         main: './src/main.ts',
         background: './src/background.ts',
-        'popup-css': './src/popup.css',
+        'popup-css': './static/popup.css',
     },
     output: {
         filename: '[name].js',
@@ -41,7 +41,7 @@ module.exports = {
             filename: 'popup.html',
         }),
         new CopyWebpackPlugin({
-            patterns: [{ from: 'src/static', to: 'static' }, { from: 'src/manifest.json' }],
+            patterns: [{ from: 'static' }],
         }),
     ],
 };
